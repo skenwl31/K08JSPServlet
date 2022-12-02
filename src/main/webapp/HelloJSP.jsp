@@ -17,6 +17,6 @@ String str2 = "안녕하세요";
 	out.println(str2 + str1 +" 입니다 열공합시당^^*");
 	%>
 	</p>
-	...
+	
 </body>
 </html>
