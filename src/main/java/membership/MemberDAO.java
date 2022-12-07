@@ -7,6 +7,7 @@ DAO(Data Access Object)
 */
 
 import common.JDBConnect;
+import model1.board.BoardDTO;
 
 public class MemberDAO extends JDBConnect{
 	
