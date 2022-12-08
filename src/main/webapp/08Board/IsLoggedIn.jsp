@@ -11,15 +11,9 @@
 if(session.getAttribute("UserId") == null){
 	JSFunction.alertLocation("로그인 후 이용해주십시오.","../06Session/LoginForm.jsp", out);
 	return;
+	/*
+	반드시 return이 있어야 한다. jsp실행을 멈추고 입력한 경로로
+	이동하기 위해서.
+	*/
 }
 %>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
-</head>
-<body>
-
-</body>
-</html>
