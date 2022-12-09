@@ -136,7 +136,7 @@ dao.close();
 						virtualNum = totalCount--;   
 						
 					%>					
-                   <%--  <tbody>
+                   <%--  <tbody> ㅋㅋㅋ
                         <%for(int i=1 ; i<=5 ; i++){ %> 
                         <!-- 리스트반복 -->
                         <tr>
