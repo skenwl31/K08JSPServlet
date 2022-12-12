@@ -33,7 +33,7 @@ public class JSFunction {
 		try {
 			String script = ""
 						+"<script>"
-						+"		alert('" + msg + "');"
+						+"		alert('" +  msg + "');"
 						+"		history.back();"
 						+"</script>";
 			out.println(script);

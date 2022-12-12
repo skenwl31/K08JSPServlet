@@ -1,34 +1,79 @@
-<%@page import="model1.homework.BoardDTO"%>
+<%@page import="utils.BoardPageboots"%>
+<%@page import="model1.board.BoardDTO"%>
 <%@page import="java.util.List"%>
-<%@page import="java.util.Map"%>
 <%@page import="java.util.HashMap"%>
-<%@page import="model1.homework.BoardDAO"%>
+<%@page import="java.util.Map"%>
+<%@page import="model1.board.BoardDAO"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-
 <%
-//DB연결 및 CRUD작업을 위한 DAO 객체 생성
+//DB연결 및 CRUD작업을 위한 DAO객체를 생성한다.
 BoardDAO dao = new BoardDAO(application);
-
-/*검색어가 있는경우 클라이언트가 선택한 필드명과 검색*/
+/*
+검색어가 있는경우 클라이언트가 선택한 필드명과 검색어를 저장할
+Map컬렉션을 생성한다. 
+*/
 Map<String, Object> param = new HashMap<String, Object>();
-
+/* 검색폼에서 입력한 검색어와 필드명을 파라미터로 받아온다.
+해당 <form>의 전송방식은 get, action속성은 없는 상태이므로 현재
+페이지로 폼값이 전송된다. */
 String searchField = request.getParameter("searchField");
 String searchWord = request.getParameter("searchWord");
-//사용자가 입력한 검색어가 있다면
-if (searchWord != null){
-	/* Map컬렉션에 컬럼명과 검색어를 추가한다.*/
+//사용자가 입력한 검색어가 있다면..
+if (searchWord != null) {
+	/* Map컬렉션에 컬럼명과 검색어를 추가한다. */
 	param.put("searchField", searchField);
 	param.put("searchWord", searchWord);
 }
-
-
 //Map컬렉션을 인수로 게시물의 갯수를 카운트한다.
 int totalCount = dao.selectCount(param);
-//목록에 출력한 게시물을 추출하여 반환받는다.
-List<BoardDTO> boardLists = dao.selectList(param);
-dao.close();
 
+
+/**페이징 코드 추가 부분 start************************/
+//web.xml에 설정한 컨텍스트 초기화 파라미터를 읽어와서 산술연산을 위해
+//정수(int)로 변환한다.
+int pageSize = Integer.parseInt(application.getInitParameter("POSTS_PER_PAGE"));
+int blockPage = Integer.parseInt(application.getInitParameter("PAGES_PER_BLOCK"));
+
+/*전체 페이지수를 계산한다. 
+(전체게시물갯수 / 페이지당 출력할게시물 갯수) =>결과값의 올림처리
+가령 게시물의 갯수가 51개라면 나눴을때의 결과가 5.1이 된다. 이때 무조건
+올림처리 하여 6 페이지가 나오게 된다. 만약 totalCount를 double로 형변환
+하지 않으면 정수의 결과가 나오게 되므로 6페이지가 아니라 5페이지라는 결과가 
+나오게 되므로 주의해야 한다.
+*/
+int totalPage = (int)Math.ceil((double)totalCount / pageSize);
+
+/*
+목록에 처음 진입했을때는 페이지 관련 파라미터가 없는 상태이므로 무조건
+1page로 지정한다. 만약 파라미터 pageNum이 있다면 request 내장객체를 통해
+받아온 후 페이지 번호로 지정한다.
+List.jsp => 이와같이 파라미터가 없는 상태일때는 null
+List.jsp?pageNum ==> 이와같이 파라미터는 있는데 값이 없을때는 빈값으로 체크된다.
+	따라서 아래 if문은 2개의 조건으로 구성해야 한다.
+*/
+int pageNum = 1;
+String pageTemp = request.getParameter("pageNum");
+if (pageTemp != null && !pageTemp.equals(""))
+	pageNum = Integer.parseInt(pageTemp);
+
+/*
+게시물의 구간을 계산한다.
+각 페이지의 시작번호와 종료번호를 현재페이지 번호와 페이지 사이즈를 통해
+계산한 후 DAO로 전달하기 위해 MAP컬렉션에 추가한다.
+*/
+int start = (pageNum -1) * pageSize +1;
+int end = pageNum * pageSize;
+param.put("start", start);
+param.put("end", end);
+	
+/**페이징 코드 추가부분 end************************/
+
+
+//목록에 출력할 게시물을 추출하여 반환받는다. 
+List<BoardDTO> boardLists = dao.selectListPage(param);
+//자원해제
+dao.close();
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,38 +87,17 @@ dao.close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
-    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">    
 </head>
 <body>
 <div class="container">
-
     <div class="row">
-    <!-- 상단네비게이션 인클루드 -->
-    	<%@ include file="./inc/top.jsp" %>  
+    	<!-- 상단 네비게이션 인클루드 -->
+        <%@ include file ="./inc/top.jsp" %>
     </div>
     <div class="row">
-        <div class="col-3">
-            <div style="height: 100px; line-height: 100px; margin:10px 0; text-align: center; 
-				color:#ffffff; background-color:rgb(133, 133, 133); border-radius:10px; font-size: 1.5em;">
-                웹사이트제작
-            </div>
-            <div class="nav flex-column nav-pills dropdown dropend" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="tab"
-                    aria-controls="v-pills-home" aria-selected="true">자유게시판</a>
-                <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab"
-                    aria-controls="v-pills-profile" aria-selected="false">자료실</a>
-                <a class="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab"
-                    aria-controls="v-pills-messages" aria-selected="false">방명록</a>
-                <a class="nav-link dropdown-toggle " data-bs-toggle="dropdown" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab"
-                    aria-controls="v-pills-messages" aria-selected="false">드롭다운</a>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">SubMenu 1</a>
-                        <a class="dropdown-item" href="#">SubMenu 2</a>
-                        <a class="dropdown-item" href="#">SubMenu 3</a>
-                    </div>
-            </div>
-        </div>
+            <!-- 사이드바 인클루드 -->
+			<%@ include file = "./inc/side.jsp" %>
         <div class="col-9 pt-3">
             <h3>게시판 목록 - <small>자유게시판</small></h3>
 
@@ -81,8 +105,6 @@ dao.close();
                 <!-- 검색부분 -->
                 <form method="get">
                     <div class="input-group ms-auto" style="width: 400px;">
-                    
-                    
                         <select name="searchField" class="form-control">
                             <option value="title">제목</option>
                             <option value="id">작성자</option>
@@ -106,7 +128,6 @@ dao.close();
                         <col width="120px" />
                         <col width="120px" />
                         <col width="80px" />
-                        <col width="60px" />
                     </colgroup>
                     <thead>
                         <tr style="background-color: rgb(133, 133, 133); " class="text-center text-white">
@@ -115,71 +136,57 @@ dao.close();
                             <th>작성자</th>
                             <th>작성일</th>
                             <th>조회수</th>
-                            <th>첨부</th>
                         </tr>
                     </thead>
-                    <%
-					//컬렉션에 입력된 데이터가 없는지 확인한다.
-					if (boardLists.isEmpty()) {
-					%>
-				        <tr>
-				            <td colspan="5" align="center">
-				                등록된 게시물이 없습니다^^*
-				            </td>
-				        </tr>
-					<%
-					}
-					else{
-					int virtualNum = 0;
-					for (BoardDTO dto : boardLists){
-						
-						virtualNum = totalCount--;   
-						
-					%>					
-                   <%--  <tbody> ㅋㅋㅋ
-                        <%for(int i=1 ; i<=5 ; i++){ %> 
-                        <!-- 리스트반복 -->
+                    <tbody>
+						<%
+						//컬렉션에 입력된 데이터가 없는지 확인한다.
+						if (boardLists.isEmpty()) {
+						%>
+						        <tr>
+						            <td colspan="5" align="center">
+						                등록된 게시물이 없습니다^^*
+						            </td>
+						        </tr>
+						<%
+						}
+						else {
+							//출력할 게시물이 있는 경우에는 확장 for문으로 List컬렉션에
+							//저장된 데이터의 갯수만큼 반복하여 출력한다.
+						    int virtualNum = 1; 
+						    for (BoardDTO dto : boardLists)
+						    {
+						    	//현재 출력할 게시물의 갯수에 따라 출력번호는 달라지므로
+						    	//totalCount를 사용하여 가상번호를 부여한다.
+						        virtualNum = totalCount--;   
+						%>
                         <tr>
-                            <td class="text-center"><%= i %></td>
-                            <td class="text-left"><a href="boardView.jsp">제목</a></td>
-                            <td class="text-center">작성자</td>
-                            <td class="text-center">작성일</td>
-                            <td class="text-center">조회수</td>
-                            <td class="text-center"><i class="bi bi-pin-angle-fill" style="font-size:20px"></i></td>
+                            <td class="text-center"><%= virtualNum %></td>
+                            <td class="text-left"><a href="boardView.jsp?num=<%= dto.getNum() %>"><%= dto.getTitle() %></a></td>
+                            <td class="text-center"><%= dto.getId() %></td>
+                            <td class="text-center"><%= dto.getPostdate() %></td>
+                            <td class="text-center"><%= dto.getVisitcount() %></td>
                         </tr>
-                     </tbody>  --%>
-                     <tr align="center">
-        	<!--  게시물의 가상 번호 -->
-            <td><%= virtualNum %></td>
-            <!-- 제목 -->  
-            <td align="left"> 
-                <a href="boardView.jsp?num=<%= dto.getNum() %>"><%= dto.getTitle() %></a> 
-            </td>
-           <!-- 작성자 아이디 -->
-            <td align="center"><%= dto.getId() %></td>
-            <!--  작성일 -->   
-            <td align="center"><%= dto.getPostdate() %></td>
-            <!--  조회수 -->                    
-            <td align="center"><%= dto.getVisitcount() %></td>
-         </tr>
-<% 
-	} 
-}                   
-%>
+                        <%
+						    }
+						}
+						%>
+                    </tbody>
                 </table>
             </div>
             <div class="row">
                 <div class="col d-flex justify-content-end">
                     <!-- 각종 버튼 부분 -->
-                    
                     <button type="button" class="btn btn-primary" onclick="location.href='boardWrite.jsp';">글쓰기</button>
-                    
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col">
                     <!-- 페이지번호 부분 -->
-                    <ul class="pagination justify-content-center">
+                <% System.out.println("현재경로" + request.getRequestURI()); %>
+        		<%= BoardPageboots.pagingStr(totalCount, pageSize, blockPage, pageNum,
+        				request.getRequestURI()) %>
+                    <!-- <ul class="pagination justify-content-center">
                         <li class="page-item">
                             <a href="#" class="page-link"><i class='bi bi-skip-backward-fill'></i></a>
                         </li>
@@ -197,25 +204,14 @@ dao.close();
                         <li class="page-item">
                             <a href="#" class="page-link"><i class='bi bi-skip-forward-fill'></i></a>
                         </li>
-                    </ul>
+                    </ul> -->
                 </div>
             </div>
         </div>
     </div>
     <div class="row border border-dark border-bottom-0 border-right-0 border-left-0"></div>
-    <div class="row mb-5 mt-3">
-        <div class="col-2">
-            <h3>겸이아빠&trade;</h3>
-        </div>
-        <div class="col-10 text-center">
-            Email : nakjasabal@naver.com&nbsp;&nbsp;
-            Mobile : 010-7906-3600&nbsp;&nbsp;
-            Address : 서울시 금천구 가산동 426-5 월드메르디앙2차 1강의실
-            <br />
-            copyright &copy; 2019 한국소프트웨어인재개발원.
-            All right reserved.
-        </div>
-    </div>
+    	<!-- 바텀 인클루드 -->
+		<%@ include file = "./inc/bottom.jsp" %>
 </div>
 </body>
 </html>
