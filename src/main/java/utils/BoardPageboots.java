@@ -8,30 +8,32 @@ public class BoardPageboots {
 		int pageNum, String reqUrl) {
 		
 		//페이지 바로가기 링크를 저장할 문자열 변수 생성
-String pagingStr ="";
-		
+		StringBuffer sb = new StringBuffer();
+			
 		int totalPages = (int)(Math.ceil(((double) totalCount / pageSize)));
 		
 		int pageTemp = (((pageNum -1) /  blockPage) * blockPage) + 1;
-		  pagingStr += "<ul class='pagination justify-content-center'>";
+		  sb.append("<ul class='pagination justify-content-center'>");
 		  
 		if(pageTemp != 1) {
-			pagingStr += "<li class='page-item'><a href='" + reqUrl + "?pageNum=1' class='page-link'><i class='bi bi-skip-backward-fill'></i></a></li>";
-			pagingStr += "<li class='page-item'><a href='" + reqUrl + "?pageNum=1' "+ " (pageTemp -1) " + " class='page-link'><i class=\"bi bi-skip-start-fill\"></i></a></li>";
+			sb.append("<li class='page-item'><a href='" + reqUrl + "?pageNum=1' class='page-link'><i class='bi bi-skip-backward-fill'></i></a></li>");
+			sb.append("<li class='page-item'><a href='" + reqUrl + "?pageNum=1' "+ " (pageTemp -1) " + " class='page-link'><i class=\"bi bi-skip-start-fill\"></i></a></li>");
 		}
 		
 		int blockCount = 1;
 		
 		while ( blockCount <= blockPage && pageTemp <= totalPages) {
+			
 			if(pageTemp == pageNum) {
-				pagingStr += "<li class='page-item'>";
-				pagingStr += "<a href='" + reqUrl + "?pageNum="+pageNum+ "' class='page-link active'>"+pageNum+"</a>";
-				pagingStr += "</li>";
+				sb.append("<li class='page-item'>");
+				sb.append("<a href='" + reqUrl + "?pageNum="+pageNum+ "' class='page-link active'>"+pageNum+"</a>");
+				sb.append("</li>");
+				
 				
 			}else {
-				pagingStr += "<li class='page-item'>";
-				pagingStr +=  "<a href='" + reqUrl + "?pageNum="+pageTemp+ "' class='page-link'>"+pageTemp+"</a>";
-				pagingStr +=  "</li>";
+				sb.append("<li class='page-item'>");
+				sb.append("<a href='" + reqUrl + "?pageNum="+pageTemp+ "' class='page-link'>"+pageTemp+"</a>");
+				sb.append("</li>") ;
 			}
 			pageTemp++;
 			blockCount++;
@@ -39,14 +41,14 @@ String pagingStr ="";
 		}
 		
 		if(pageTemp <= totalPages) {
-			pagingStr += "<li class='page-item'>";
-			pagingStr +=  "<a href='" + reqUrl + "?pageNum="+ pageTemp +"'&nbsp; class='page-link'><i class='bi bi-skip-end-fill'></i></a>";
-			pagingStr +=  "</li>";
-			pagingStr += "<li class='page-item'>";
-			pagingStr +=  "<a href='" + reqUrl + "?pageNum="+ totalPages + "'&nbsp; class='page-link'><i class='bi bi-skip-forward-fill'></i></a>";
-			pagingStr +=  "</li>";
+			sb.append("<li class='page-item'>");
+			sb.append("<a href='" + reqUrl + "?pageNum="+ pageTemp +"'&nbsp; class='page-link'><i class='bi bi-skip-end-fill'></i></a>");
+			sb.append("</li>");
+			sb.append("<li class='page-item'>");
+			sb.append("<a href='" + reqUrl + "?pageNum="+ totalPages + "'&nbsp; class='page-link'><i class='bi bi-skip-forward-fill'></i></a>");
+			sb.append("</li>");
 		}
-		pagingStr += "</ul>";
-		return pagingStr;
+		sb.append("</ul>");
+		return sb.toString();
 	}
 }
