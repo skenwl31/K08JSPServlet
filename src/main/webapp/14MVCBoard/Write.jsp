@@ -33,7 +33,6 @@ function validateForm(form) {  // 폼 내용 검증
 </head>
 <body>
 <h2>회원제 게시판 - 글쓰기(Write)</h2>
-
 <!-- 
 	파일을 첨부하기 위한 작성폼은 아래 2가지 조건이 지켜져야 한다.
 	1.전송방식(method)은 post여야 한다.
@@ -42,7 +41,6 @@ function validateForm(form) {  // 폼 내용 검증
 	request객체로는 폼값을 받을 수 없다. cos.jar 확장라이브러리가
 	제공하는 MultipartRequest객체를 사용해서 폼값을 받아야 한다.
  -->
-
 <form name="writeFrm" method="post" enctype="multipart/form-data"
 	 action="../mvcboard/write.do"  onsubmit="return validateForm(this);">
 
